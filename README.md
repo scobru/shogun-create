@@ -1,4 +1,4 @@
-# Shogun Create
+# Shogun Create ⛺
 
 A utility library for creating and configuring Gun.js instances for both Node.js and browser environments.
 
