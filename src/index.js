@@ -8,7 +8,7 @@ const Gun = require("gun");
 
 const portStruct = 8765;
 
-const peersStructRaw = [""]
+const peersStructRaw = [""];
 
 const optionsRadiskRaw = {
   useRadisk: true,
@@ -26,7 +26,7 @@ const schemaOptionsLocalstorage = inferSchema(parse(optionsLocalstorageRaw));
 const schemaPeers = inferSchema(parse(peersStructRaw));
 const schemaPort = inferSchema(parse(portStruct));
 
-/*
+/** 
  * Creates a Gun client instance for Node.js environments.
  * @param {string[]} peers - Array of peer URLs.
  * @param {object} [options={}] - Configuration options.
