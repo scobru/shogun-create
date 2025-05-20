@@ -1,0 +1,22 @@
+{
+  "name": "shogun-create",
+  "version": "1.0.1",
+  "description": "A utility library for creating and configuring Gun.js instances for both Node.js and browser environments.",
+  "keywords": ["shogun", "create", "gun", "gundb", "client", "server", "browser", "nodejs"],
+  "main": "src/index.js",
+  "dependencies": {
+    "gun": "^0.2020.1239",
+    "mityli": "^1.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "author": {
+    "name": "Scobru"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scobru/shogun-create.git"
+  },
+  "license": "MIT"
+}
