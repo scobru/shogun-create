@@ -105,9 +105,8 @@ function createBrowserClient(peers, options = {}) {
  * @param {number} port - The port for the HTTP server.
  * @param {string[]} peers - Array of peer URLs for meshing.
  * @param {object} [options={}] - Configuration options.
- * @param {string} [options.radiskPath=''] - Path for file-based persistence. Enables Radisk.
- *                                                If empty and enableRadisk is true, Gun's default ('data') is used and a warning is issued.
- * @param {boolean} [options.useRadisk=true] - Controls Radisk. If persistencePath is set, Radisk is typically active.
+ * @param {string} [options.radiskPath=''] - Path for file-based persistence.
+ * @param {boolean} [options.useRadisk=true] - Controls whether Radisk persistence is enabled.
  * @returns {Gun} A Gun instance.
  */
 function createNodeServer(port, peers, options = {}) {
@@ -140,7 +139,7 @@ function createNodeServer(port, peers, options = {}) {
       config.file = radiskPath; // 'file' option enables Radisk with file system storage
     }
   }
-  // If enableRadisk is false, config.file is not set, so file-based persistence is disabled.
+  // If useRadisk is false, config.file is not set, so file-based persistence is disabled.
   // Gun will operate in-memory unless other persistence options are configured.
 
   return Gun(config);

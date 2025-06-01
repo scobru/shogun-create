@@ -65,13 +65,13 @@ const server = createNodeServer(8765, ['http://localhost:8765/gun']);
 
 // Server with custom persistence path
 const customServer = createNodeServer(8765, ['http://localhost:8765/gun'], {
-  persistencePath: './my-server-data',
-  enableRadisk: true  // Enables persistence (default)
-});
+  useRadisk: true,  // Enables persistence (default)
+  radiskPath: 'my-data'
+})
 
 // In-memory only server
 const inMemoryServer = createNodeServer(8765, ['http://localhost:8765/gun'], {
-  enableRadisk: false
+  useRadisk: false
 });
 ```
 

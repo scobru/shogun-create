@@ -1,6 +1,6 @@
 {
   "name": "shogun-create",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A utility library for creating and configuring Gun.js instances for both Node.js and browser environments.",
   "keywords": ["shogun", "create", "gun", "gundb", "client", "server", "browser", "nodejs"],
   "main": "src/index.js",
