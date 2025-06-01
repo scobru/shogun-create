@@ -105,9 +105,9 @@ function createBrowserClient(peers, options = {}) {
  * @param {number} port - The port for the HTTP server.
  * @param {string[]} peers - Array of peer URLs for meshing.
  * @param {object} [options={}] - Configuration options.
- * @param {string} [options.persistencePath=''] - Path for file-based persistence. Enables Radisk.
+ * @param {string} [options.radiskPath=''] - Path for file-based persistence. Enables Radisk.
  *                                                If empty and enableRadisk is true, Gun's default ('data') is used and a warning is issued.
- * @param {boolean} [options.enableRadisk=true] - Controls Radisk. If persistencePath is set, Radisk is typically active.
+ * @param {boolean} [options.useRadisk=true] - Controls Radisk. If persistencePath is set, Radisk is typically active.
  * @returns {Gun} A Gun instance.
  */
 function createNodeServer(port, peers, options = {}) {
@@ -116,7 +116,7 @@ function createNodeServer(port, peers, options = {}) {
   validate(schemaPort, port);
 
   const http = require("http");
-  const { persistencePath = "", enableRadisk = true } = options;
+  const { radiskPath = "", useRadisk = true } = options;
 
   // Create an HTTP server instance and start listening.
   // Gun will attach its WebSocket handlers to this server.
@@ -127,17 +127,17 @@ function createNodeServer(port, peers, options = {}) {
     web: server, // Attach Gun to the HTTP server
     peers,
     localStorage: false, // Not applicable for Node.js server
-    radisk: enableRadisk,
+    radisk: useRadisk,
   };
 
-  if (enableRadisk) {
-    if (!persistencePath) {
+  if (useRadisk) {
+    if (!radiskPath) {
       console.warn(
         `NodeServer on port ${port}: Radisk is enabled but no persistencePath is provided. Using Gun default path (e.g., "data").`
       );
       config.file = "data"; // Gun's default for server-side persistence if path is not specified
     } else {
-      config.file = persistencePath; // 'file' option enables Radisk with file system storage
+      config.file = radiskPath; // 'file' option enables Radisk with file system storage
     }
   }
   // If enableRadisk is false, config.file is not set, so file-based persistence is disabled.
