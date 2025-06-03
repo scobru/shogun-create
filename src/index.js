@@ -2,6 +2,15 @@ const { parse, inferSchema, validate } = require("mityli");
 
 // common.js
 const Gun = require("gun");
+
+require("gun/sea");
+require("gun/lib/then");
+require("gun/lib/radix");
+require("gun/lib/radisk");
+require("gun/lib/store");
+require("gun/lib/rindexed");
+require("gun/lib/webrtc");
+
 // For Node.js server with Radisk file persistence, Gun typically auto-loads necessary modules.
 // If issues arise, you might need to explicitly require them:
 // e.g., require('gun/lib/radisk'); require('gun/lib/store'); require('gun/lib/rfs');
