@@ -1,12 +1,27 @@
 {
   "name": "shogun-create",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "A utility library for creating and configuring Gun.js instances for both Node.js and browser environments.",
-  "keywords": ["shogun", "create", "gun", "gundb", "client", "server", "browser", "nodejs"],
+  "keywords": [
+    "shogun",
+    "create",
+    "gun",
+    "gundb",
+    "client",
+    "server",
+    "browser",
+    "nodejs"
+  ],
   "main": "src/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
   "dependencies": {
     "gun": "^0.2020.1239",
-    "mityli": "^1.0.1"
+    "mityli": "^1.0.1",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "concurrently": "^7.6.0"
