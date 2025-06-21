@@ -1,14 +1,17 @@
 # Shogun Create ⛺
 
-A utility library for creating and configuring Gun.js instances for both Node.js and browser environments.
+A comprehensive utility library for creating and configuring Gun.js instances with pre-configured setups for rapid development across Node.js and browser environments.
 
 ## Features
 
-- Simple API for creating Gun.js instances
-- Support for different environments (Node.js client, Node.js server, browser)
-- Configurable persistence options (localStorage, Radisk)
-- Type validation for configuration parameters
-- Sensible defaults with clear warnings
+- 🚀 **Rapid Setup** - Pre-configured instances for different scenarios
+- 🏪 **Multiple Storage Options** - localStorage, IndexedDB, File System, In-Memory
+- 🌐 **WebSocket Enabled** - Real-time synchronization across all instances
+- ⚡ **Performance Optimized** - Tuned configurations for different use cases
+- 🎯 **Environment Auto-Detection** - Automatically chooses optimal configuration
+- 🛠️ **Developer Friendly** - One-line setup for development environments
+- 📦 **Type Validation** - Built-in parameter validation with mityli
+- 🎨 **Preset System** - Quick configuration templates
 
 ## Installation
 
@@ -16,108 +19,146 @@ A utility library for creating and configuring Gun.js instances for both Node.js
 npm install shogun-create
 ```
 
-## Usage
-
-### Creating a Node.js Client
+## Quick Start
 
 ```javascript
-const { createNodeClient } = require('shogun-create');
+const { createAutoClient, createDevSetup } = require('shogun-create');
 
-// Simple client with default configuration
-const client = createNodeClient(['http://localhost:8765/gun']);
+// Auto-detect environment and create optimal instance
+const client = createAutoClient(['http://localhost:8765/gun']);
 
-// Client with Radisk persistence
-const persistentClient = createNodeClient(['http://localhost:8765/gun'], {
-  useRadisk: true,
-  radiskPath: 'my-data'
-});
-```
-
-### Creating a Browser Client
-
-```javascript
-const { createBrowserClient } = require('shogun-create');
-
-// Default browser client (uses localStorage)
-const browserClient = createBrowserClient(['http://localhost:8765/gun']);
-
-// Browser client with customized storage options
-const customBrowserClient = createBrowserClient(['http://localhost:8765/gun'], {
-  useLocalStorage: true,  // Uses localStorage (default)
-  useRadisk: true,        // Also enables Radisk
-  radiskPath: 'my-app-data'
-});
-
-// In-memory only client (no persistence)
-const inMemoryClient = createBrowserClient(['http://localhost:8765/gun'], {
-  useLocalStorage: false,
-  useRadisk: false
-});
-```
-
-### Creating a Node.js Server
-
-```javascript
-const { createNodeServer } = require('shogun-create');
-
-// Create a Gun server on port 8765
-const server = createNodeServer(8765, ['http://localhost:8765/gun']);
-
-// Server with custom persistence path
-const customServer = createNodeServer(8765, ['http://localhost:8765/gun'], {
-  useRadisk: true,  // Enables persistence (default)
-  radiskPath: 'my-data'
-})
-
-// In-memory only server
-const inMemoryServer = createNodeServer(8765, ['http://localhost:8765/gun'], {
-  useRadisk: false
-});
+// Complete development setup (server + client)
+const { server, client: devClient } = createDevSetup(8765);
 ```
 
 ## API Reference
 
-### `createNodeClient(peers, options)`
+### Pre-configured Client Instances
 
-Creates a Gun client instance for Node.js environments.
+#### `createLocalStorageClient(peers)`
+Browser client optimized for localStorage storage.
 
-**Parameters:**
-- `peers` (string[]): Array of peer URLs
-- `options` (object, optional):
-  - `useRadisk` (boolean): Whether to enable Radisk persistence (default: `false`)
-  - `radiskPath` (string): Path for Radisk data store if useRadisk is true (default: `''`)
+```javascript
+const { createLocalStorageClient } = require('shogun-create');
 
-**Returns:** A Gun instance
+const client = createLocalStorageClient(['http://localhost:8765/gun']);
+// Uses: localStorage + WebSocket, optimized chunks (1000)
+```
 
-### `createBrowserClient(peers, options)`
+#### `createIndexedDBClient(peers, dbName)`
+Browser client using IndexedDB via Radisk for large datasets.
 
-Creates a Gun client instance for Browser environments.
+```javascript
+const { createIndexedDBClient } = require('shogun-create');
 
-**Parameters:**
-- `peers` (string[]): Array of peer URLs
-- `options` (object, optional):
-  - `useLocalStorage` (boolean): Whether to enable localStorage persistence (default: `true`)
-  - `useRadisk` (boolean): Whether to enable Radisk persistence (default: `false`)
-  - `radiskPath` (string): Name/path for Radisk store if useRadisk is true (default: `''`)
+const client = createIndexedDBClient(['http://localhost:8765/gun'], 'myapp-db');
+// Uses: IndexedDB + WebSocket, larger chunks (2000)
+```
 
-**Returns:** A Gun instance
+#### `createFileSystemClient(peers, dataPath)`
+Node.js client optimized for file system persistence.
 
-### `createNodeServer(port, peers, options)`
+```javascript
+const { createFileSystemClient } = require('shogun-create');
 
-Creates a Gun server instance for Node.js environments, attaching Gun to an HTTP server.
+const client = createFileSystemClient(['http://localhost:8765/gun'], './data');
+// Uses: File system + WebSocket, large chunks (5000)
+```
 
-**Parameters:**
-- `port` (number): The port for the HTTP server
-- `peers` (string[]): Array of peer URLs for meshing
-- `options` (object, optional):
-  - `persistencePath` (string): Path for file-based persistence (default: `''`)
-  - `enableRadisk` (boolean): Controls Radisk persistence (default: `true`)
+#### `createInMemoryClient(peers)`
+Fast in-memory client for testing and demos.
 
-**Returns:** A Gun instance
+```javascript
+const { createInMemoryClient } = require('shogun-create');
 
-## Examples
+const client = createInMemoryClient(['http://localhost:8765/gun']);
+// Uses: Memory only + WebSocket, minimal chunks (100)
+```
 
-### Basic Browser Usage
+#### `createRealtimeClient(peers)`
+Optimized for real-time collaboration with WebRTC support.
+
+```javascript
+const { createRealtimeClient } = require('shogun-create');
+
+const client = createRealtimeClient(['http://localhost:8765/gun']);
+// Uses: localStorage + IndexedDB + WebSocket + WebRTC, fast timeouts
+```
+
+#### `createOfflineFirstClient(peers, options)`
+Designed for offline-first applications with configurable storage.
+
+```javascript
+const { createOfflineFirstClient } = require('shogun-create');
+
+const client = createOfflineFirstClient(['http://localhost:8765/gun'], {
+  storageQuota: 100, // MB
+  syncInterval: 30000 // ms
+});
+// Uses: localStorage + IndexedDB + WebSocket, extended timeouts
+```
+
+### Utility Functions
+
+#### `createAutoClient(peers, options)`
+Auto-detects environment and creates optimal instance.
+
+```javascript
+const { createAutoClient } = require('shogun-create');
+
+// Browser: uses localStorage or IndexedDB based on preference
+const browserClient = createAutoClient(['http://localhost:8765/gun'], {
+  preferIndexedDB: true,
+  dbName: 'myapp'
+});
+
+// Node.js: uses file system
+const nodeClient = createAutoClient(['http://localhost:8765/gun'], {
+  dataPath: './mydata'
+});
+```
+
+#### `createPresetClient(preset, peers, overrides)`
+Uses predefined configuration presets.
+
+```javascript
+const { createPresetClient, PRESETS } = require('shogun-create');
+
+// Available presets: FAST, RELIABLE, MINIMAL, COLLABORATIVE
+const fastClient = createPresetClient('FAST', ['http://localhost:8765/gun']);
+
+// With custom overrides
+const customClient = createPresetClient('RELIABLE', ['http://localhost:8765/gun'], {
+  chunk: 3000 // Override default chunk size
+});
+```
+
+#### `createDevSetup(port)`
+Complete development environment setup.
+
+```javascript
+const { createDevSetup } = require('shogun-create');
+
+const { server, client } = createDevSetup(8765);
+// Creates server on port 8765 + optimized client connected to it
+```
+
+### Original Functions (Enhanced)
+
+#### `createNodeClient(peers, options)`
+Enhanced Node.js client with WebSocket support.
+
+```javascript
+const { createNodeClient } = require('shogun-create');
+
+const client = createNodeClient(['http://localhost:8765/gun'], {
+  useRadisk: true,
+  radiskPath: 'mydata'
+});
+```
+
+#### `createBrowserClient(peers, options)`
+Enhanced browser client with WebSocket support.
 
 ```javascript
 const { createBrowserClient } = require('shogun-create');
@@ -125,43 +166,259 @@ const { createBrowserClient } = require('shogun-create');
 const client = createBrowserClient(['http://localhost:8765/gun'], {
   useLocalStorage: true,
   useRadisk: true,
-  radiskPath: 'radata',
-});
-
-// Store data
-client.get('hello').put({data: 'world'});
-
-// Retrieve data
-client.get('hello').once((data) => {
-  console.log(data);  // Outputs: {data: 'world'}
+  radiskPath: 'myapp-data'
 });
 ```
 
-### Creating a Node.js Server
+#### `createNodeServer(port, peers, options)`
+Enhanced Node.js server with WebSocket enabled.
 
 ```javascript
 const { createNodeServer } = require('shogun-create');
 
-// Start a server on port 8765
-const server = createNodeServer(8765, [], {
-  persistencePath: './my-data'
+const server = createNodeServer(8765, ['http://localhost:8765/gun'], {
+  useRadisk: true,
+  radiskPath: 'server-data'
 });
-
-// Use the server instance
-server.get('app').get('users').set({
-  name: 'John',
-  role: 'admin'
-});
-
-console.log('Gun server running on port 8765');
 ```
 
-## Notes on Persistence
+## Configuration Presets
 
-- **Node.js Clients/Servers**: Persistence is file-based when Radisk is enabled
-- **Browser Clients**: Persistence uses localStorage by default, can be extended with Radisk
-- **In-memory only**: Disable both localStorage and Radisk for transient data
+### PRESETS Object
+
+```javascript
+const { PRESETS } = require('shogun-create');
+
+console.log(PRESETS);
+// {
+//   FAST: { chunk: 100, until: 9, localStorage: true, radisk: false, ws: true },
+//   RELIABLE: { chunk: 2000, until: 199, localStorage: true, radisk: true, ws: true },
+//   MINIMAL: { chunk: 50, until: 1, localStorage: false, radisk: false, ws: true },
+//   COLLABORATIVE: { chunk: 500, until: 29, localStorage: true, radisk: true, ws: true }
+// }
+```
+
+### Preset Use Cases
+
+- **FAST** - Maximum speed, minimal persistence (testing, demos)
+- **RELIABLE** - Balanced performance and data safety (production apps)
+- **MINIMAL** - Lightweight setup (embedded systems, minimal apps)
+- **COLLABORATIVE** - Optimized for real-time collaboration (chat, collaborative editing)
+
+## Usage Examples
+
+### Real-time Chat Application
+
+```javascript
+const { createRealtimeClient } = require('shogun-create');
+
+const gun = createRealtimeClient(['wss://my-gun-server.com/gun']);
+
+// Setup real-time messaging
+const messages = gun.get('chat').get('messages');
+
+// Send message
+messages.set({ text: 'Hello!', user: 'Alice', timestamp: Date.now() });
+
+// Listen for new messages
+messages.map().on((message, key) => {
+  console.log(`${message.user}: ${message.text}`);
+});
+```
+
+### Offline-First Mobile App
+
+```javascript
+const { createOfflineFirstClient } = require('shogun-create');
+
+const gun = createOfflineFirstClient(['https://api.myapp.com/gun'], {
+  storageQuota: 50, // 50MB local storage
+  syncInterval: 60000 // Sync every minute when online
+});
+
+// Works offline, syncs when connection available
+gun.get('user').get('profile').put({
+  name: 'John Doe',
+  lastActive: Date.now()
+});
+```
+
+### Development Environment
+
+```javascript
+const { createDevSetup } = require('shogun-create');
+
+// Start development server and client
+const { server, client } = createDevSetup(3000);
+
+console.log('Gun server running on http://localhost:3000/gun');
+
+// Use client for development
+client.get('dev').get('test').put('Hello Development!');
+```
+
+### Production Deployment
+
+```javascript
+const { createNodeServer, createPresetClient } = require('shogun-create');
+
+// Production server
+const server = createNodeServer(process.env.PORT || 8765, [], {
+  useRadisk: true,
+  radiskPath: process.env.DATA_PATH || '/var/lib/gundb'
+});
+
+// Production client
+const client = createPresetClient('RELIABLE', [
+  'wss://primary.myapp.com/gun',
+  'wss://backup.myapp.com/gun'
+]);
+```
+
+### Auto-Detection for Universal Apps
+
+```javascript
+const { createAutoClient } = require('shogun-create');
+
+// Works in both Node.js and browser
+const gun = createAutoClient(['https://api.myapp.com/gun'], {
+  preferIndexedDB: true, // Browser preference
+  dataPath: './data',    // Node.js preference
+  dbName: 'myapp-db'     // IndexedDB name
+});
+
+// Universal code
+gun.get('app').get('config').once(config => {
+  console.log('App config loaded:', config);
+});
+```
+
+## Storage Comparison
+
+| Instance Type | Environment | Storage | Performance | Use Case |
+|---------------|-------------|---------|-------------|----------|
+| `createLocalStorageClient` | Browser | localStorage | Fast | Small to medium data |
+| `createIndexedDBClient` | Browser | IndexedDB | Medium | Large datasets |
+| `createFileSystemClient` | Node.js | File System | High | Server applications |
+| `createInMemoryClient` | Both | Memory | Very Fast | Testing, temporary data |
+| `createRealtimeClient` | Both | localStorage + IndexedDB | Medium | Real-time collaboration |
+| `createOfflineFirstClient` | Both | localStorage + IndexedDB | Medium | Offline-capable apps |
+
+## Advanced Configuration
+
+### Custom Chunk Sizes
+
+```javascript
+const { createPresetClient } = require('shogun-create');
+
+// Override default chunk size for large files
+const client = createPresetClient('RELIABLE', peers, {
+  chunk: 10000 // Larger chunks for file uploads
+});
+```
+
+### Connection Timeouts
+
+```javascript
+const { createBrowserClient } = require('shogun-create');
+
+const client = createBrowserClient(peers, {
+  useLocalStorage: true,
+  useRadisk: true
+});
+
+// The 'until' parameter is set automatically based on the function used
+// FAST: 9ms, RELIABLE: 199ms, COLLABORATIVE: 29ms
+```
+
+### WebSocket Configuration
+
+All instances automatically include `ws: true` for real-time synchronization. WebSocket connections enable:
+
+- Instant data synchronization
+- Bi-directional communication
+- Efficient peer-to-peer networking
+- Real-time collaboration features
+
+## Environment Detection
+
+The library automatically detects the runtime environment:
+
+```javascript
+// Browser detection
+if (typeof window !== 'undefined') {
+  // Browser-specific optimizations
+  // - localStorage or IndexedDB
+  // - WebSocket for real-time sync
+}
+
+// Node.js detection
+if (typeof window === 'undefined') {
+  // Node.js-specific optimizations
+  // - File system persistence
+  // - Server capabilities
+}
+```
+
+## Error Handling
+
+All functions include built-in validation:
+
+```javascript
+const { createLocalStorageClient } = require('shogun-create');
+
+try {
+  // This will throw an error if peers is not an array
+  const client = createLocalStorageClient('invalid-peers');
+} catch (error) {
+  console.error('Configuration error:', error.message);
+}
+```
+
+## Performance Tips
+
+1. **Choose the right instance type** for your use case
+2. **Use IndexedDB for large datasets** in browsers
+3. **Enable Radisk for persistence** in production
+4. **Use FAST preset for prototyping** and RELIABLE for production
+5. **Consider offline-first** for mobile applications
+6. **Use real-time client** only when needed to avoid overhead
+
+## Migration from Basic Gun
+
+### Before (Basic Gun):
+```javascript
+const Gun = require('gun');
+require('gun/sea');
+
+const gun = Gun({
+  peers: ['http://localhost:8765/gun'],
+  localStorage: true
+});
+```
+
+### After (Shogun Create):
+```javascript
+const { createAutoClient } = require('shogun-create');
+
+const gun = createAutoClient(['http://localhost:8765/gun']);
+// Automatically optimized with WebSocket, proper chunking, and validation
+```
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## License
 
 MIT
+
+## Related Projects
+
+- [Gun.js](https://gun.eco/) - The decentralized database
+- [shogun-core](https://github.com/scobru/shogun-core) - Authentication and core utilities
+- [mityli](https://github.com/scobru/mityli) - Type validation library
+
+---
+
+**Made with ❤️ by the Shogun Team**

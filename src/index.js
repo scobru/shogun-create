@@ -5,9 +5,12 @@ const Gun = require("gun");
 
 require("gun/sea");
 require("gun/lib/then");
-require("gun/lib/radix");
 require("gun/lib/radisk");
 require("gun/lib/store");
+require("gun/lib/wire");
+require("gun/lib/stats");
+require("gun/lib/server");
+require("gun/lib/yson");
 require("gun/lib/rindexed");
 require("gun/lib/webrtc");
 
@@ -35,6 +38,44 @@ const schemaOptionsLocalstorage = inferSchema(parse(optionsLocalstorageRaw));
 const schemaPeers = inferSchema(parse(peersStructRaw));
 const schemaPort = inferSchema(parse(portStruct));
 
+/**
+ * Presets predefiniti per diversi scenari
+ */
+const PRESETS = {
+  // Configurazioni rapide basate sulla documentazione GunDB
+  FAST: {
+    chunk: 100,
+    until: 9,
+    localStorage: true,
+    radisk: false,
+    ws: true
+  },
+  
+  RELIABLE: {
+    chunk: 2000,
+    until: 199,
+    localStorage: true,
+    radisk: true,
+    ws: true
+  },
+  
+  MINIMAL: {
+    chunk: 50,
+    until: 1,
+    localStorage: false,
+    radisk: false,
+    ws: true
+  },
+  
+  COLLABORATIVE: {
+    chunk: 500,
+    until: 29,
+    localStorage: true,
+    radisk: true,
+    ws: true
+  }
+};
+
 /** 
  * Creates a Gun client instance for Node.js environments.
  * @param {string[]} peers - Array of peer URLs.
@@ -54,6 +95,7 @@ function createNodeClient(peers, options = {}) {
     peers,
     localStorage: false, // localStorage is not available/used in Node.js
     radisk: useRadisk,
+    ws: true, // Abilita WebSocket per comunicazione peer-to-peer
   };
   if (useRadisk) {
     if (!radiskPath) {
@@ -93,6 +135,7 @@ function createBrowserClient(peers, options = {}) {
     peers,
     localStorage: useLocalStorage,
     radisk: useRadisk,
+    ws: true, // Abilita WebSocket per sincronizzazione real-time
   };
 
   if (useRadisk) {
@@ -136,6 +179,7 @@ function createNodeServer(port, peers, options = {}) {
     peers,
     localStorage: false, // Not applicable for Node.js server
     radisk: useRadisk,
+    ws:true,
   };
 
   if (useRadisk) {
@@ -154,8 +198,218 @@ function createNodeServer(port, peers, options = {}) {
   return Gun(config);
 }
 
+/**
+ * Istanza browser ottimizzata per localStorage
+ * @param {string[]} peers - Array di peer URLs
+ * @returns {Gun} Istanza Gun ottimizzata per localStorage
+ */
+function createLocalStorageClient(peers = []) {
+  validate(schemaPeers, peers);
+  
+  return Gun({
+    peers,
+    localStorage: true,
+    radisk: false,
+    ws: true, // Abilita WebSocket per sync real-time
+    // Ottimizzazioni specifiche per localStorage
+    chunk: 1000, // Dimensione chunk per localStorage
+  });
+}
+
+/**
+ * Istanza browser con IndexedDB via Radisk
+ * @param {string[]} peers - Array di peer URLs
+ * @param {string} dbName - Nome del database IndexedDB
+ * @returns {Gun} Istanza Gun con IndexedDB
+ */
+function createIndexedDBClient(peers = [], dbName = 'gundb') {
+  validate(schemaPeers, peers);
+  
+  return Gun({
+    peers,
+    localStorage: false, // Disabilita localStorage
+    radisk: true,        // Abilita Radisk che userà IndexedDB automaticamente
+    file: dbName,        // Nome/namespace per IndexedDB
+    ws: true,            // Abilita WebSocket per sync real-time
+    // Configurazioni specifiche per IndexedDB
+    chunk: 2000,
+  });
+}
+
+/**
+ * Istanza Node.js ottimizzata per Radisk file system
+ * @param {string[]} peers - Array di peer URLs
+ * @param {string} dataPath - Percorso per i dati
+ * @returns {Gun} Istanza Gun con file system
+ */
+function createFileSystemClient(peers = [], dataPath = 'radata') {
+  validate(schemaPeers, peers);
+  
+  return Gun({
+    peers,
+    localStorage: false,
+    radisk: true,
+    file: dataPath,
+    ws: true, // Abilita WebSocket per sync real-time
+    // Ottimizzazioni per file system
+    chunk: 5000,
+    until: 99, // Timeout per operazioni
+  });
+}
+
+/**
+ * Istanza in-memory per testing/demo rapidi
+ * @param {string[]} peers - Array di peer URLs
+ * @returns {Gun} Istanza Gun solo in memoria
+ */
+function createInMemoryClient(peers = []) {
+  validate(schemaPeers, peers);
+  
+  return Gun({
+    peers,
+    localStorage: false,
+    radisk: false,
+    ws: true, // Abilita WebSocket per sync real-time
+    // Configurazione per massima velocità
+    chunk: 100,
+  });
+}
+
+/**
+ * Istanza ottimizzata per real-time collaboration
+ * @param {string[]} peers - Array di peer URLs
+ * @returns {Gun} Istanza Gun per collaborazione real-time
+ */
+function createRealtimeClient(peers) {
+  validate(schemaPeers, peers);
+  
+  const gun = Gun({
+    peers,
+    localStorage: true,
+    radisk: true,
+    ws: true, // Essenziale per real-time collaboration
+    // Ottimizzazioni per real-time
+    chunk: 500,
+    until: 9, // Timeout più breve per real-time
+  });
+  
+  // Carica moduli specifici per real-time se disponibili
+  try {
+    require('gun/lib/webrtc'); // Per connessioni P2P dirette
+  } catch (e) {
+    console.warn('WebRTC module not available');
+  }
+  
+  return gun;
+}
+
+/**
+ * Istanza per applicazioni offline-first
+ * @param {string[]} peers - Array di peer URLs
+ * @param {object} options - Opzioni di configurazione
+ * @returns {Gun} Istanza Gun ottimizzata per offline
+ */
+function createOfflineFirstClient(peers = [], options = {}) {
+  validate(schemaPeers, peers);
+  
+  const { storageQuota = 50, syncInterval = 30000 } = options;
+  
+  return Gun({
+    peers,
+    localStorage: true,
+    radisk: true,
+    ws: true, // WebSocket per sync quando online
+    // Configurazioni per offline-first
+    chunk: 1000,
+    until: 199, // Timeout più lungo per offline
+    // Quota storage personalizzabile
+    quota: storageQuota * 1024 * 1024, // MB to bytes
+  });
+}
+
+/**
+ * Crea istanza Gun con preset predefinito
+ * @param {string} preset - Nome del preset (FAST, RELIABLE, MINIMAL, COLLABORATIVE)
+ * @param {string[]} peers - Array di peer URLs
+ * @param {object} overrides - Sovrascritture delle configurazioni
+ * @returns {Gun} Istanza Gun configurata
+ */
+function createPresetClient(preset, peers = [], overrides = {}) {
+  validate(schemaPeers, peers);
+  
+  if (!PRESETS[preset]) {
+    throw new Error(`Preset "${preset}" non trovato. Presets disponibili: ${Object.keys(PRESETS).join(', ')}`);
+  }
+  
+  const config = { ...PRESETS[preset], peers, ...overrides };
+  return Gun(config);
+}
+
+/**
+ * Auto-rileva l'ambiente e crea l'istanza ottimale
+ * @param {string[]} peers - Array di peer URLs
+ * @param {object} options - Opzioni aggiuntive
+ * @returns {Gun} Istanza Gun ottimizzata per l'ambiente
+ */
+function createAutoClient(peers = [], options = {}) {
+  validate(schemaPeers, peers);
+  
+  const isNode = typeof window === 'undefined';
+  const hasIndexedDB = typeof indexedDB !== 'undefined';
+  
+  if (isNode) {
+    return createFileSystemClient(peers, options.dataPath);
+  } else if (hasIndexedDB && options.preferIndexedDB) {
+    return createIndexedDBClient(peers, options.dbName);
+  } else {
+    return createLocalStorageClient(peers);
+  }
+}
+
+/**
+ * Setup rapido per sviluppo locale
+ * @param {number} port - Porta del server locale (default: 8765)
+ * @returns {object} Server e client configurati
+ */
+function createDevSetup(port = 8765) {
+  validate(schemaPort, port);
+  
+  const serverPeers = [`http://localhost:${port}/gun`];
+  
+  // Server per Node.js
+  const server = createNodeServer(port, [], {
+    useRadisk: true,
+    radiskPath: 'dev-data'
+  });
+  
+  // Client ottimizzato per sviluppo
+  const client = createAutoClient(serverPeers, {
+    preferIndexedDB: true,
+    dbName: 'dev-gundb'
+  });
+  
+  return { server, client };
+}
+
 module.exports = {
+  // Funzioni esistenti
   createNodeClient,
   createBrowserClient,
   createNodeServer,
+  
+  // Nuove istanze preconfezionate
+  createLocalStorageClient,
+  createIndexedDBClient,
+  createFileSystemClient,
+  createInMemoryClient,
+  createRealtimeClient,
+  createOfflineFirstClient,
+  
+  // Utilities
+  createPresetClient,
+  createAutoClient,
+  createDevSetup,
+  
+  // Presets per accesso diretto
+  PRESETS
 };

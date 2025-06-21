@@ -19,7 +19,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "gun": "^0.2020.1239",
+    "gun": "^0.2020.1240",
     "mityli": "^1.0.1",
     "typescript": "^5.8.3"
   },
